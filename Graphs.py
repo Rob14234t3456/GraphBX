@@ -1,4 +1,5 @@
 from random import random
+from MathOperations import hamming_distance, permutations
 
 
 class Graph:
@@ -71,6 +72,7 @@ class Graph:
             path.append(prev[path[-1]])
         return path
 
+    # IN PROGRESS - NOT CURRENTLY WORKING
     def path_flow(self, v1, v2):
         # CURRENTLY DOES NOT WORK
         # uses a neat manipulation of network flows to find a path
@@ -95,6 +97,46 @@ class Graph:
         explored = {v}
         scan_vertex(v)
         return explored == set(self._graph)
+
+    def induced_subgraph(self, vertices: set):
+        # returns a new graph, the subgraph induced from vertex set given
+        g = Graph()
+        g.add_vertices(*vertices)
+        for e in self.get_edges():
+            if e[0] in vertices and e[1] in vertices:
+                g.add_edge(e[0], e[1])
+        return g
+
+    # CURRENTLY MISSES SOME SINGLE-EDGE CLIQUES, UNSURE WHY
+    def max_cliques(self):
+        # uses the Bron-Kerbosch algorithm to compute a list of maximal cliques
+        cliques = []
+
+        def bk(r: list, p: list, x: list, clique_list: list) -> None:
+            # R - current clique
+            # P - potential expansions
+            # X - explored vertices (excluding)
+            # clique_set - outer set to be appended
+
+            if len(p) == 0 and len(x) == 0:
+                clique_list.append(set(r))
+
+            for v in p:
+                bk(r + [v], list(set(p).intersection(self.neighbourhood(v))),
+                   list(set(x).intersection(self.neighbourhood(v))), clique_list)
+                p.remove(v)
+                x.append(v)
+
+        bk([], list(self.get_vertices()), [], cliques)
+        return cliques
+
+    def complement(self):
+        # returns a new graph with structure of the complement graph
+        g = Graph()
+        g.add_vertices(*self.get_vertices())
+        g.add_edges(*[(u, v,) for u in self.get_vertices() for v in self.get_vertices()
+                      if u != v and not self.adjacent(u, v)])
+        return g
 
 
 class DirectedGraph(Graph):
@@ -251,9 +293,49 @@ class NetworkFlow:
         return n.shortest_path(n.source(), n.sink(), key=lambda x, y: m - n.get_weight(x, y))
 
 
-def erdos_renyi_model_generation(g: Graph, p: float):
-    # enumerate all possible edges of a graph using a method similar to the get_edges function
-    # this is not most efficient, but it is easy
+def find_embeddings(g1: Graph, g2: Graph):
+    # in this library, an embedding is a mapping of the vertices of some graph g2, to the vertices
+    # of another graph g1 such that (positive) adjacency between vertices of g2 is preserved.
+    # for clarity, this means that arbitrary injections of the vertices of any graph to a complete
+    # graph are embeddings, and the same is true for embeddings of the vertices of an empty graph to any graph.
+
+    # v1 - enumerative method, presumably a better algorithm can be found, similar to Bron-Kerbosch.
+    # first, list vertices of g2 and assign their indices to a dict - this helps in permutation comprehension.
+    g2l = list(g2.get_vertices())
+    order = {g2l[i]: i for i in range(len(g2l))}
+
+    embeddings = []
+    # then, check each |V(g2)|-permutation of V(g1) for an embedding.
+    for perm in permutations(list(g1.get_vertices()), len(g2.get_vertices())):
+        if False not in [g1.adjacent(perm[order[e[0]]], perm[order[e[1]]]) for e in g2.get_edges()]:
+            # if embedding is proper, generate the map and add to the list
+            embeddings.append({g2l[i]: perm[i] for i in range(len(g2l))})
+
+    return embeddings
+
+
+def erdos_renyi_model_generation(n: int, p: float):
+    # generate a random graph with n vertices and edge probability p
+    g = Graph()
+    g.add_vertices(*[i for i in range(n)])
 
     possible_edges = {frozenset({v, u}) for v in g.get_vertices() for u in g.get_vertices() - {v}}
     g.add_edges(*[tuple(e) for e in possible_edges if random() < p])
+    return g
+
+
+def hypercube_generation(dim):
+    # generates a new graph with the structure of a dim-hypercube
+    vertices = [i for i in range(2 ** dim)]
+    edges = [(v, u,) for v in vertices for u in vertices if hamming_distance(v, u) == 1]
+    g = Graph()
+    g.add_vertices(*vertices)
+    g.add_edges(*edges)
+    return g
+
+
+def ngon_generation(n: int):
+    g = Graph()
+    g.add_vertices(*[i for i in range(n)])
+    g.add_edges(*[(i, (i+1) % n,) for i in range(n)])
+    return g
