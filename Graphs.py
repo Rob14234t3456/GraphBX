@@ -3,8 +3,13 @@ from MathOperations import hamming_distance, permutations
 
 
 class Graph:
-    def __init__(self):
-        self._graph = dict()
+    def __init__(self, *args):
+        # allows for defining a graph by a dict
+
+        if len(args) == 0:
+            self._graph = dict()
+        if len(args) == 1:
+            self._graph = args[0]
 
     def add_vertices(self, *args):
         for v in args:
