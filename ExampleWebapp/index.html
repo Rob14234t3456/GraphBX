@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Untitled Document</title>
+</head>
+
+<body>
+    <script src="script.js"></script> 
+    
+    <center>
+        Welcome to the GraphBX demo!
+        <p></p>
+        <canvas id="frame" width = "1000" height="1000">
+        </canvas>
+        <p></p>
+        <button> Draw Graph! </button>
+    </center>
+</body>
+</html>
+
+
+<script>
+var c = document.getElementById("frame");
+var ctx = c.getContext("2d");
+    
+load_xml_doc("data.xml", ctx)
+</script> 
