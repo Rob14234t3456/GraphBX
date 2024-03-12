@@ -1,3 +1,30 @@
+function insert_sidenav(root_directory) {
+    var xhttp = new XMLHttpRequest();
+    
+    xhttp.onreadystatechange = function() {
+        console.log('done');
+        if (this.readyState == 4 && this.status == 200) {
+            
+            var doc = this.responseText;
+            var sidebar = document.createElement('div');
+            sidebar.innerHTML = doc;
+            sidebar.className = 'sidenav';
+            document.body.appendChild(sidebar);
+        }
+    };
+    
+    xhttp.open('GET', root_directory + 'sidenav.html', true);
+    xhttp.send();
+}
+
+
+function randgraph_request(n, p) {
+    var xhttp = new XMLHttpRequest();
+    xhttp.open('RANDGRAPH', '/' + n + ';' + p, true);
+    xhttp.send();
+}
+
+
 function draw_graph_from_xml(xml, canvas) {
     var xmldoc = xml.responseXML;
     var vertices = xmldoc.getElementsByTagName("vertex");
@@ -23,7 +50,6 @@ function draw_graph_from_xml(xml, canvas) {
         
         var neighbours = vertices[i].getElementsByTagName("neighbour");
         var n2 = neighbours.length;
-        console.log(n2);
         
         for (j = 0; j < n2; j++) {
             var neighbour_name = neighbours[j].childNodes[0].nodeValue;

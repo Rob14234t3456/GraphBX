@@ -1,5 +1,5 @@
 import xml.etree.ElementTree as ElementTree
-from Graphs import Graph, erdos_renyi_model_generation, ngon_generation
+from Graphs import Graph, erdos_renyi_model_generation, ngon_generation, hypercube_generation
 import GraphsRender
 
 
@@ -67,10 +67,10 @@ def parse_graph_coords(g: Graph, coords: dict, directory: str):
     tree.write(directory)
 
 
-graph = erdos_renyi_model_generation(64, 0.1)
-crds = GraphsRender.generate_random_coordinates(graph, 1000, 1000)
-parse_graph_coords(graph, crds, "ExampleWebapp/data.xml")
+# graph = hypercube_generation(4)
+# crds = GraphsRender.generate_circle_coordinates(graph, 1000, 1000, 0.8)
+# parse_graph_coords(graph, crds, "ExampleWebapp/index_demo_graph.xml")
 
-canvas = GraphsRender.Canvas(1000, 1000)
-GraphsRender.render_graph_coordinate(canvas, graph, 1000, 1000, crds, 30)
-GraphsRender.begin_mainloop(canvas)
+# canvas = GraphsRender.Canvas(1000, 1000)
+# GraphsRender.render_graph_coordinate(canvas, graph, 1000, 1000, crds, 30)
+# GraphsRender.begin_mainloop(canvas)

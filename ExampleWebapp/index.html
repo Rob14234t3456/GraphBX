@@ -1,21 +1,29 @@
 <!doctype html>
 <html>
 <head>
-<meta charset="utf-8">
-<title>Untitled Document</title>
+    <meta charset="utf-8">
+    <title>Untitled Document</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 
-<body>
+<body class="body">
     <script src="script.js"></script> 
     
-    <center>
-        Welcome to the GraphBX demo!
-        <p></p>
-        <canvas id="frame" width = "1000" height="1000">
-        </canvas>
-        <p></p>
-        <button> Draw Graph! </button>
-    </center>
+    <div class="main">
+        <h1>
+            Welcome to GraphBX!
+        </h1>
+        <p>
+            <canvas id="frame" width = "1000" height="1000">
+            </canvas>
+        </p>
+        <h2>
+            About
+        </h2>
+        <p>
+            This website is a project, intended to help anyone interested in learning graph theory. It provides interactive visual demonstration of concepts, and games to help test your understanding.
+        </p>
+    </div>
 </body>
 </html>
 
@@ -23,6 +31,9 @@
 <script>
 var c = document.getElementById("frame");
 var ctx = c.getContext("2d");
+ctx.fillStyle = "white";
+ctx.strokeStyle = "white";
     
-load_xml_doc("data.xml", ctx)
+load_xml_doc("index_demo_graph.xml", ctx);
+insert_sidenav('');
 </script> 
