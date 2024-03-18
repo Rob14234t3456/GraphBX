@@ -35,6 +35,41 @@ def parse_xml_dict(directory: str) -> dict:
     return d
 
 
+def parse_xml_graph(directory: str) -> Graph:
+    # parses the XML graph file at directory into a graph object
+
+    g = Graph()
+    tree = ElementTree.parse(directory)
+    vertices = tree.getroot().findall('vertex')
+
+    # first add all vertices
+    for v in vertices:
+        g.add_vertex(eval(v.text))
+
+    # then add edges
+    for v in vertices:
+        neighbours = v.findall('neighbour')
+        for u in neighbours:
+            g.add_edge(eval(v.text), eval(u.text))
+
+    return g
+
+
+def parse_xml_graph_coordinates(directory: str) -> dict:
+    # parses the XML coordinate graph file at directory into a coordinate dict
+
+    coords = dict()
+    tree = ElementTree.parse(directory)
+    vertices = tree.getroot().findall('vertex')
+
+    # first add all vertices
+    for v in vertices:
+        c = v.findall('coordinate')[0]
+        coords[eval(v.text)] = eval(c.text)
+
+    return coords
+
+
 def parse_graph(g: Graph, directory: str):
     root = ElementTree.Element('vertices')
 
@@ -66,11 +101,3 @@ def parse_graph_coords(g: Graph, coords: dict, directory: str):
     tree = ElementTree.ElementTree(root)
     tree.write(directory)
 
-
-# graph = hypercube_generation(4)
-# crds = GraphsRender.generate_circle_coordinates(graph, 1000, 1000, 0.8)
-# parse_graph_coords(graph, crds, "ExampleWebapp/index_demo_graph.xml")
-
-# canvas = GraphsRender.Canvas(1000, 1000)
-# GraphsRender.render_graph_coordinate(canvas, graph, 1000, 1000, crds, 30)
-# GraphsRender.begin_mainloop(canvas)

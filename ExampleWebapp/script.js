@@ -2,7 +2,6 @@ function insert_sidenav(root_directory) {
     var xhttp = new XMLHttpRequest();
     
     xhttp.onreadystatechange = function() {
-        console.log('done');
         if (this.readyState == 4 && this.status == 200) {
             
             var doc = this.responseText;
@@ -18,10 +17,68 @@ function insert_sidenav(root_directory) {
 }
 
 
-function randgraph_request(n, p) {
+function test_post() {
     var xhttp = new XMLHttpRequest();
-    xhttp.open('RANDGRAPH', '/' + n + ';' + p, true);
-    xhttp.send();
+    var body = JSON.stringify({
+        request_type: "test"
+    });
+    
+    xhttp.open("POST", "/", true);
+    xhttp.send(body);
+}
+
+
+function randgraph_request(int_n, float_p, path) {
+    // commands server to create XML data for a random graph with parameters n, p
+    // saves file to path
+    
+    var xhttp = new XMLHttpRequest();
+    var body = JSON.stringify({
+        request_type: 'random_graph_generation',
+        n: int_n,
+        p: float_p
+    });
+    xhttp.open('POST', path, true);
+    xhttp.send(body);
+}
+
+
+function nearest_xy_vertex(x, y, graph_path, ready_action) {
+    // commands server to find nearest vertex in a coordinate graph (XML at path) to (x, y)
+    // server responds with vertex name and performs the function ready_action
+    
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = ready_action;
+    xhttp.responseType = 'text';
+    
+    var body = JSON.stringify ({
+        request_type: 'nearest_xy_vertex',
+        graph_path: graph_path,
+        x: x,
+        y: y
+    });
+    
+    xhttp.open('POST', '', true);
+    xhttp.send(body);
+}
+
+function shortest_path(v1, v2, graph_path, ready_action) {
+    // commands server to find shortest path in a graph (XML at path) from v1 to v2
+    // server responds with a JSON list of vertex names in path order
+    
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = ready_action;
+    xhttp.responseType = 'text';
+    
+    var body = JSON.stringify ({
+        request_type: 'shortest_path',
+        graph_path: graph_path,
+        v1: v1,
+        v2: v2
+    });
+    
+    xhttp.open('POST', '', true);
+    xhttp.send(body);
 }
 
 
@@ -63,6 +120,22 @@ function draw_graph_from_xml(xml, canvas) {
 }
 
 
+function load_coordinates_to_object(xml, object) {
+    var xmldoc = xml.responseXML;
+    var vertices = xmldoc.getElementsByTagName("vertex");
+    var n = vertices.length;
+    
+    for (i = 0; i < n; i ++) {
+        var vertex_name = vertices[i].childNodes[0].nodeValue;
+        var coords = vertices[i].getElementsByTagName("coordinate")[0].childNodes[0].nodeValue;
+        var xpos = parse_coordinate(coords, 0);
+        var ypos = parse_coordinate(coords, 1);
+        
+        object[vertex_name] = [xpos, ypos];
+    }
+}
+
+
 function load_xml_doc(directory, canvas) {
     var xhttp = new XMLHttpRequest();
     
@@ -75,6 +148,22 @@ function load_xml_doc(directory, canvas) {
     xhttp.open("GET", directory, true);
     xhttp.send();
     
+}
+
+
+function load_graph_coordinates(directory, coord_object) {
+    // loads graph XMl from directory and stores a coordinate hashmap into coord_object
+    
+    var xhttp = new XMLHttpRequest();
+    
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            load_coordinates_to_object(this, coord_object);
+        }
+    }
+    
+    xhttp.open("GET", directory, true);
+    xhttp.send();
 }
 
 

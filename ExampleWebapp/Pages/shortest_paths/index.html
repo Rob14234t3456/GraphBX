@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Untitled Document</title>
+    <link rel="stylesheet" href="../../style.css">
+</head>
+
+<body class="body">
+    <script src="/script.js"></script> 
+    
+    <div class="main">
+        <h1>
+            Shortest Paths
+        </h1>
+        <p>
+            A shortest path in a graph is a path from a start vertex to another, which has a minimal length. We can find shortest paths in graphs using Djikstra's Algorithmn descibed below. Click on two vertices in the following example graph to display their shortest path in blue.
+        </p>
+        
+        <p>
+            <canvas onClick="canvas_click(event)" id="frame" width = "1000" height="1000">
+            </canvas>
+        </p>
+    </div>
+</body>
+</html>
+
+
+<script>
+insert_sidenav('../../')
+    
+var c = document.getElementById("frame");
+var ctx = c.getContext("2d");
+ctx.fillStyle = "white";
+ctx.strokeStyle = "white";
+    
+load_xml_doc("graph_data.xml", ctx);
+var coords = {};
+load_graph_coordinates("graph_data.xml", coords)
+
+var v1 = null;
+var v2 = null;
+
+
+function readystate_path() {
+    if (this.readyState == 4 && this.status == 200) {
+        ctx.fillStyle = 'blue';
+        ctx.strokeStyle = 'blue';
+        
+        // parse and draw path
+        var path = JSON.parse(this.responseText);
+        var n = path.length;
+        
+        
+        for (i = 0; i < n-1; i++) {
+            console.log(coords[path[i]])
+            draw_dot(ctx, coords[path[i]][0], coords[path[i]][1], 20);
+            draw_path(ctx, coords[path[i]][0], coords[path[i]][1],
+                      coords[path[i+1]][0], coords[path[i+1]][1]
+                     );
+        }
+        draw_dot(ctx, coords[path[n-1]][0], coords[path[n-1]][1], 20);
+        
+        ctx.fillStyle = 'white';
+        ctx.strokeStyle = 'white';
+    }
+}
+    
+
+function readystate_click() {
+    if (this.readyState == 4 && this.status == 200) {
+        
+        if (v1 == null) {
+            v1 = this.responseText;
+            
+            // draw a bigger dot at v1
+            draw_dot(ctx, coords[v1][0], coords[v1][1], 20);
+            
+        } else if (v2 == null) {
+            v2 = this.responseText;
+            
+            // draw a bigger dot at v2
+            draw_dot(ctx, coords[v2][0], coords[v2][1], 20);
+            
+            // get shortest path from v1 to v2
+            shortest_path(v1, v2, 'graph_data.xml', readystate_path)
+            
+        } else {
+            v1 = this.reponseText;
+            v2 = null;
+        }
+    }
+}
+
+function canvas_click(evt) {
+    var rect = c.getBoundingClientRect();
+    var x = evt.clientX - rect.left;
+    var y = evt.clientY - rect.top;
+    
+    nearest_xy_vertex(x, y, "graph_data.xml", readystate_click);
+}
+
+</script> 

@@ -2,6 +2,7 @@ from Graphs import *
 import tkinter as tk
 from math import cos, sin, pi
 from random import random
+from MathOperations import xy_distance
 
 
 font = ("Times", 16)
@@ -14,6 +15,10 @@ class Canvas(tk.Canvas):
 
     def create_dot(self, x, y, r, colour="black"):
         self.create_oval(x - r, y - r, x + r, y + r, fill=colour)
+
+    def begin_mainloop(self):
+        self.pack()
+        self.top.mainloop()
 
 
 def render_graph_circle(g: Graph, h: float, w: float, padding: float, label_padding: float):
@@ -91,6 +96,7 @@ def render_graph_coordinate_style(canvas: Canvas, g: Graph, h: float, w: float, 
         canvas.create_line(coords[e[0]], coords[e[1]], fill=colour, width=line_thickness)
 
 
-def begin_mainloop(canvas: Canvas):
-    canvas.pack()
-    canvas.top.mainloop()
+def nearest_vertex_xy(graph: BasicGraph, coords: dict, x: float, y: float):
+    listed_vertices = list(graph.get_vertices())
+    distances = [xy_distance(x, y, coords[v][0], coords[v][1]) for v in listed_vertices]
+    return listed_vertices[distances.index(min(distances))]

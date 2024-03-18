@@ -2,25 +2,31 @@ from random import random
 from MathOperations import hamming_distance, permutations
 
 
-class Graph:
-    def __init__(self, *args):
-        # allows for defining a graph by a dict
+class BasicGraph:
+    # class for graphs which shouldn't inherit methods that change the structure e.g. Trees should not
+    # have a non-protected add_vertex method since this will disconnect them
 
+    def __init__(self, *args):
         if len(args) == 0:
             self._graph = dict()
-        if len(args) == 1:
+        elif len(args) == 1:
+            # allows for defining a graph by a dict
             self._graph = args[0]
 
-    def add_vertices(self, *args):
-        for v in args:
-            self._graph[v] = set()
+    def _add_vertex(self, v):
+        self._graph[v] = set()
 
-    def add_edge(self, v1, v2):
+    def _add_vertices(self, *args):
+        for v in args:
+            self._add_vertex(v)
+
+    def _add_edge(self, v1, v2):
         self._graph[v1].add(v2)
         self._graph[v2].add(v1)
 
-    def add_edges(self, *args):
-        [self.add_edge(e[0], e[1]) for e in args]
+    def _add_edges(self, *args):
+        for e in args:
+            self._add_edge(e[0], e[1])
 
     def adjacent(self, v1, v2):
         return v2 in self._graph[v1]
@@ -103,6 +109,23 @@ class Graph:
         scan_vertex(v)
         return explored == set(self._graph)
 
+    def get_spanning_tree(self, v):
+        # returns a spanning tree, rooted at v, of the connected component containing v
+        # uses Prim's algorithm
+        spanning_tree = RootedTree(v)
+
+        def scan_vertex(vertex):
+            explored.add(vertex)
+            neighbours = self.neighbourhood(vertex) - explored
+            for u in list(neighbours):
+                spanning_tree.add_child(vertex, u)
+                scan_vertex(u)
+
+        v = list(self._graph)[0]
+        explored = {v}
+        scan_vertex(v)
+        return spanning_tree
+
     def induced_subgraph(self, vertices: set):
         # returns a new graph, the subgraph induced from vertex set given
         g = Graph()
@@ -142,6 +165,40 @@ class Graph:
         g.add_edges(*[(u, v,) for u in self.get_vertices() for v in self.get_vertices()
                       if u != v and not self.adjacent(u, v)])
         return g
+
+
+class RootedTree(BasicGraph):
+    def __init__(self, root_name):
+        # creates a basic graph with a single root vertex
+        super().__init__({root_name: set()})
+        self._children = {root_name: set()}
+        self.root = root_name
+
+    def add_child(self, parent, child):
+        self._add_vertex(child)
+        self._children[child] = set()
+        self._add_edge(parent, child)
+        self._children[parent].add(child)
+
+    def is_child(self, parent, child):
+        return child in self._children[parent]
+
+    def get_children(self, parent):
+        return self._children[parent]
+
+
+class Graph(BasicGraph):
+    def add_vertex(self, v):
+        super()._add_vertex(v)
+
+    def add_vertices(self, *args):
+        super()._add_vertices(*args)
+
+    def add_edge(self, v1, v2):
+        super()._add_edge(v1, v2)
+
+    def add_edges(self, *args):
+        super()._add_edges(*args)
 
 
 class DirectedGraph(Graph):
@@ -304,7 +361,7 @@ def find_embeddings(g1: Graph, g2: Graph):
     # for clarity, this means that arbitrary injections of the vertices of any graph to a complete
     # graph are embeddings, and the same is true for embeddings of the vertices of an empty graph to any graph.
 
-    # v1 - enumerative method, presumably a better algorithm can be found, similar to Bron-Kerbosch.
+    # v1 - enumerative method. Presumably a better algorithm can be found, similar to Bron-Kerbosch.
     # first, list vertices of g2 and assign their indices to a dict - this helps in permutation comprehension.
     g2l = list(g2.get_vertices())
     order = {g2l[i]: i for i in range(len(g2l))}

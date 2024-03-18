@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Untitled Document</title>
+    <link rel="stylesheet" href="../../style.css">
+</head>
+
+<body class="body">
+    <script src="/script.js"></script> 
+    
+    <div class="main">
+        <h1>
+            Random Graphs
+        </h1>
+        <p>
+            Here is a quick demo of my random graph generator function in python. Enter a number of vertices and an edge probability between 0 and 1 to have a graph generated on server and sent back to the canvas below.
+        </p>
+        <p>
+            Eventually, this page will need an explanation of the erdos renyi model.
+        </p>
+        <p>
+            number of vertices: <input type='text' id='ninput'></input> edge probability: <input type='text' id='pinput'></input>
+        </p>
+        <p>
+            <button onClick="generate_graph()"> Generate! </button>
+        </p>
+        <canvas id="frame" width = "1000" height="1000">
+        </canvas>
+    </div>
+</body>
+</html>
+
+
+<script>
+var c = document.getElementById("frame");
+var ctx = c.getContext("2d");
+ctx.fillStyle = "white";
+ctx.strokeStyle = "white";
+    
+insert_sidenav('../../')
+    
+function generate_graph() {
+    ctx.clearRect(0, 0, c.width, c.height);
+    randgraph_request(document.getElementById('ninput').value, document.getElementById('pinput').value, 'graph_data.xml');
+    load_xml_doc("graph_data.xml", ctx);
+}
+
+
+</script> 

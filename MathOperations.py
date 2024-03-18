@@ -1,4 +1,4 @@
-from math import log2, ceil
+from math import log2, ceil, sqrt
 
 
 def bit_size(n):
@@ -21,6 +21,10 @@ def hamming_distance(a: int, b: int):
         a -= (2 ** i) * (a >= 2 ** i)
         b -= (2 ** i) * (b >= 2 ** i)
     return distance
+
+
+def xy_distance(x1, y1, x2, y2):
+    return sqrt(((x1 - x2) ** 2) + (y1 - y2) ** 2)
 
 
 def combinations(s: list, k: int):
