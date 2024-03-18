@@ -2,6 +2,10 @@ from Graphs import *
 import GraphsRender
 from random import randint
 
+"""" Some random examples - use debugger to inspect namespace and see all results
+"""
+
+
 # 1 - network flows
 network = Network()
 network.add_vertices('A', 'B')
@@ -43,7 +47,7 @@ for c in cliques:
     color = "#" + ("%02x" % randint(0, 255)) + ("%02x" % randint(0, 255)) + ("%02x" % randint(0, 255))
     GraphsRender.render_graph_coordinate_style(canvas, graph_3.induced_subgraph(c), 1200, 1200, coords, 30,
                                                color, 4, 15)
-GraphsRender.begin_mainloop(canvas)
+canvas.begin_mainloop()
 
 
 # 5 - complement graphs
@@ -55,7 +59,7 @@ GraphsRender.render_graph_coordinate_style(canvas, graph_4, 1200, 1200, coords, 
                                            "red", 2, 10)
 GraphsRender.render_graph_coordinate_style(canvas, graph_4_complement, 1200, 1200, coords, 30,
                                            "blue", 2, 10)
-GraphsRender.begin_mainloop(canvas)
+canvas.begin_mainloop()
 
 
 # 6 - Hypercube paths
@@ -63,4 +67,4 @@ canvas = GraphsRender.Canvas(1200, 1200)
 coords = GraphsRender.generate_circle_coordinates(graph, 1200, 1200, 0.8)
 GraphsRender.render_graph_coordinate(canvas, graph, 1200, 1200, coords, 30)
 GraphsRender.render_graph_coordinate_style(canvas, graph_f2, 1200, 1200, coords, 30, "blue", 2, 15)
-GraphsRender.begin_mainloop(canvas)
+canvas.begin_mainloop()

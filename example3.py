@@ -2,6 +2,8 @@ import Graphs
 import GraphsRender
 import XMLParse
 
+# parsing XML graph formats to Graph Objects
+
 graph = XMLParse.parse_xml_graph("ExampleWebapp/Pages/shortest_paths/graph_data.xml")
 coords = XMLParse.parse_xml_graph_coordinates("ExampleWebapp/Pages/shortest_paths/graph_data.xml")
 
