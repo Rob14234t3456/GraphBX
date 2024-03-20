@@ -11,7 +11,7 @@ def ramsey_algorithm(k: int, g: Graphs.Graph):
     # returns a k-list of vertices which is either an independent set or a clique
     # requires the graph to be of size at least 4^k
 
-    vertices = g.get_vertices()
+    vertices = g.vertices
     n = len(vertices)
 
     if n < 4 ** (k-1) and False:

@@ -33,9 +33,9 @@ var c = document.getElementById("frame");
 var ctx = c.getContext("2d");
 ctx.fillStyle = "white";
 ctx.strokeStyle = "white";
-    
+
+coords = {}
 load_xml_doc("graph_data.xml", ctx);
-var coords = {};
 load_graph_coordinates("graph_data.xml", coords)
 
 var v1 = null;
@@ -53,7 +53,6 @@ function readystate_path() {
         
         
         for (i = 0; i < n-1; i++) {
-            console.log(coords[path[i]])
             draw_dot(ctx, coords[path[i]][0], coords[path[i]][1], 20);
             draw_path(ctx, coords[path[i]][0], coords[path[i]][1],
                       coords[path[i+1]][0], coords[path[i+1]][1]
@@ -86,8 +85,12 @@ function readystate_click() {
             shortest_path(v1, v2, 'graph_data.xml', readystate_path)
             
         } else {
-            v1 = this.reponseText;
+            // if path already draw, reset state
+            v1 = null;
             v2 = null;
+            
+            ctx.clearRect(0, 0, c.width, c.height);
+            load_xml_doc("graph_data.xml", ctx);
         }
     }
 }

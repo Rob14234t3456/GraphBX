@@ -1,0 +1,90 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Untitled Document</title>
+    <link rel="stylesheet" href="../../style.css">
+</head>
+
+<body class="body">
+    <script src="/script.js"></script> 
+    
+    <div class="main">
+        <h1>
+            Connectivity
+        </h1>
+        <p>
+            We say a graph is connected if for any two of its vertices there exists a path from one to the other. In this sense, a graph is connected if and only if it admits a spanning tree covering the graph.
+        </p>
+        <p>
+            Below is a random disconnected graph. You can add edges by clicking on two vertices. Try to make the graph connected with a minimal number of additions.
+        </p>
+        <p id='info'>
+            The graph is connected: False
+        </p>
+        <canvas id="frame" height="1000" width="1000" onClick="canvas_click(event)">
+        </canvas>
+    </div>
+</body>
+</html>
+
+
+<script>
+var c = document.getElementById("frame");
+var ctx = c.getContext("2d");
+ctx.fillStyle = "white";
+ctx.strokeStyle = "white";
+
+// page script generates random disconnected graph
+server_run_page_script();
+
+// load said graph
+load_xml_doc("graph_data.xml", ctx);
+insert_sidenav('../../');
+    
+// add scripts for clicking and adding edges
+    
+var v1 = null;
+var v2 = null;
+
+function update_info() {
+    if (this.readyState == 4 && this.status == 200) {
+        console.log(this.responseText);
+        var par = document.getElementById('info');
+        par.innerHTML = 'The graph is connected: ' + this.responseText;
+    }
+}
+    
+function readystate_click() {
+    if (this.readyState == 4 && this.status == 200) {
+        
+        if (v1 == null) {
+            v1 = this.responseText;
+            
+        } else {
+            v2 = this.responseText;
+            
+            // add an edge between v1 and v2, then reset and re-draw
+            add_edge(v1, v2, 'graph_data.xml');
+            
+            v1 = null;
+            v2 = null;
+            
+            ctx.clearRect(0, 0, c.width, c.height);
+            load_xml_doc("graph_data.xml", ctx);
+            
+            // update conectivity info
+            is_connected("graph_data.xml", update_info)
+        }
+    }
+}
+
+function canvas_click(evt) {
+    var rect = c.getBoundingClientRect();
+    var x = evt.clientX - rect.left;
+    var y = evt.clientY - rect.top;
+    
+    nearest_xy_vertex(x, y, "graph_data.xml", readystate_click);
+}
+
+</script> 

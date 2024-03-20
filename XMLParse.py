@@ -73,7 +73,7 @@ def parse_xml_graph_coordinates(directory: str) -> dict:
 def parse_graph(g: Graph, directory: str):
     root = ElementTree.Element('vertices')
 
-    for v in g.get_vertices():
+    for v in g.vertices:
         evertex = ElementTree.SubElement(root, 'vertex')
         evertex.text = repr(v)
 
@@ -88,7 +88,7 @@ def parse_graph(g: Graph, directory: str):
 def parse_graph_coords(g: Graph, coords: dict, directory: str):
     root = ElementTree.Element('vertices')
 
-    for v in g.get_vertices():
+    for v in g.vertices:
         evertex = ElementTree.SubElement(root, 'vertex')
         evertex.text = repr(v)
         ecoord = ElementTree.SubElement(evertex, 'coordinate')
@@ -101,3 +101,21 @@ def parse_graph_coords(g: Graph, coords: dict, directory: str):
     tree = ElementTree.ElementTree(root)
     tree.write(directory)
 
+
+def modify_add_edge(directory: str, v1, v2):
+    # adds neighbours corresponding to a v1 and v2 edge in XML graph at directory
+    # useful, since can accept both coordinate and non-coordinate XML graphs
+    v1, v2 = repr(v1), repr(v2)
+
+    tree = ElementTree.parse(directory)
+    vertices = tree.getroot().findall('vertex')
+    names = [v.text for v in vertices]
+
+    index_v1, index_v2 = names.index(v1), names.index(v2)
+    node_v1, node_v2 = vertices[index_v1], vertices[index_v2]
+
+    v1_neighbour = ElementTree.SubElement(node_v1, 'neighbour')
+    v2_neighbour = ElementTree.SubElement(node_v2, 'neighbour')
+    v1_neighbour.text, v2_neighbour.text = v2, v1
+
+    tree.write(directory)

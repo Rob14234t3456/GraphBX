@@ -14,7 +14,10 @@ class BasicGraph:
             self._graph = args[0]
 
     def _add_vertex(self, v):
-        self._graph[v] = set()
+        if v not in self._graph:
+            self._graph[v] = set()
+        else:
+            raise KeyError("{} already has vertex {}".format(self, v))
 
     def _add_vertices(self, *args):
         for v in args:
@@ -34,13 +37,19 @@ class BasicGraph:
     def degree(self, v):
         return len(list(self.neighbourhood(v)))
 
-    def get_vertices(self):
+    @property
+    def size(self):
+        return len(self.vertices)
+
+    @property
+    def vertices(self):
         return set(self._graph)
 
-    def get_edges(self):
+    @property
+    def edges(self):
         # enumerate edges - set used to prevent reverses being counted
         # I use frozenset since set elements of a set cannot be mutable
-        edges = {frozenset({v, u}) for v in self.get_vertices() for u in self.neighbourhood(v)}
+        edges = {frozenset({v, u}) for v in self.vertices for u in self.neighbourhood(v)}
 
         # convert to tuple format and return
         return {tuple(e) for e in edges}
@@ -64,24 +73,53 @@ class BasicGraph:
         scan_vertex(v1)
         return False
 
+    # DOES NOT PROVIDE SHORTEST PATH - REPLACE WITH PROPER ALGORITHM
+#     def shortest_path(self, v1, v2):
+#         # uses a breadth-first traversal to find a shortest path between two vertices
+#         # def shortest_path(self, v1, v2):
+#
+#         explored = set()
+#         visited = {v1}
+#         prev = dict()
+#         while v2 not in list(visited):
+#             for v in list(visited):
+#                 for w in list(self.neighbourhood(v) - explored):
+#                     prev[w] = v
+#                     visited.add(w)
+#                 explored.add(v)
+#
+#         path = [v2]
+#         while v1 not in path:
+#             path.append(prev[path[-1]])
+#         return path
+
     def shortest_path(self, v1, v2):
-        # uses a breadth-first traversal to find a shortest path between two vertices
-        # def shortest_path(self, v1, v2):
+        # returns a list of vertices in path order or None if no path exists
 
         explored = set()
-        visited = {v1}
         prev = dict()
-        while v2 not in list(visited):
-            for v in list(visited):
-                for w in list(self.neighbourhood(v) - explored):
-                    prev[w] = v
-                    visited.add(w)
-                explored.add(v)
+        tentative = {v: float('inf') for v in self.vertices - {v1}}
+        tentative[v1] = 0
 
-        path = [v2]
-        while v1 not in path:
-            path.append(prev[path[-1]])
-        return path
+        def explore(v):
+            for u in self.neighbourhood(v) - explored:
+                if tentative[u] > tentative[v] + 1:
+                    prev[u] = v
+                    tentative[u] = tentative[v] + 1
+            explored.add(v)
+
+        while v2 not in explored:
+            reachable = (self.vertices - explored) - {v for v in self.vertices if tentative[v] == float('inf')}
+            if reachable == set():
+                return None
+            else:
+                explore(min(self.vertices - explored, key=tentative.get))
+        else:
+            path = [v2]
+            while v1 not in path:
+                path.append(prev[path[len(path)-1]])
+            path.reverse()
+            return path
 
     # IN PROGRESS - NOT CURRENTLY WORKING
     def path_flow(self, v1, v2):
@@ -90,13 +128,14 @@ class BasicGraph:
         # far less efficient than breadth-first, but kinda cool
 
         aux_network = Network()
-        aux_network.add_vertices(*list(self.get_vertices()))
-        [aux_network.add_edge(e[0], e[1], 1) for e in self.get_edges()]
+        aux_network.add_vertices(*list(self.vertices))
+        [aux_network.add_edge(e[0], e[1], 1) for e in self.edges]
         aux_network.add_edge(v1, "S", 1)
         aux_network.add_edge(v2, "T", 1)
         flow = aux_network.max_flow()
         return flow
 
+    @property
     def connected(self):
         def scan_vertex(vertex):
             explored.add(vertex)
@@ -108,6 +147,11 @@ class BasicGraph:
         explored = {v}
         scan_vertex(v)
         return explored == set(self._graph)
+
+    @property
+    def spanning_tree(self):
+        # returns a spanning tree, rooted at first-ordered vertex
+        return self.get_spanning_tree(list(self.vertices)[0])
 
     def get_spanning_tree(self, v):
         # returns a spanning tree, rooted at v, of the connected component containing v
@@ -130,7 +174,7 @@ class BasicGraph:
         # returns a new graph, the subgraph induced from vertex set given
         g = Graph()
         g.add_vertices(*vertices)
-        for e in self.get_edges():
+        for e in self.edges:
             if e[0] in vertices and e[1] in vertices:
                 g.add_edge(e[0], e[1])
         return g
@@ -155,16 +199,50 @@ class BasicGraph:
                 p.remove(v)
                 x.append(v)
 
-        bk([], list(self.get_vertices()), [], cliques)
+        bk([], list(self.vertices), [], cliques)
         return cliques
 
     def complement(self):
         # returns a new graph with structure of the complement graph
         g = Graph()
-        g.add_vertices(*self.get_vertices())
-        g.add_edges(*[(u, v,) for u in self.get_vertices() for v in self.get_vertices()
+        g.add_vertices(*self.vertices)
+        g.add_edges(*[(u, v,) for u in self.vertices for v in self.vertices
                       if u != v and not self.adjacent(u, v)])
         return g
+
+
+class OrderedGraph(BasicGraph):
+    # graph with a vertex ordering.
+    # defaults to order in which they were added.
+    def __init__(self, *args):
+        super().__init__(*args)
+        self._vertices = []
+
+    def _add_vertex(self, v):
+        super()._add_vertex(v)
+        self._vertices.append(v)
+
+    @property
+    def listed_vertices(self):
+        for v in self._vertices:
+            yield v
+
+    @property
+    def ordered_vertices(self):
+        return self._vertices
+
+    def __iter__(self, v):
+        return self._vertices
+
+    def index(self, v):
+        return self._vertices.index(v)
+
+    def reorder(self, ordering: list):
+        # accepts a list of vertices which must be a reordering of self._vertices
+        if len(ordering) == self.size and set(ordering) == self.vertices:
+            self._vertices = ordering
+        else:
+            raise ValueError("Ordering values do not match vertices")
 
 
 class RootedTree(BasicGraph):
@@ -209,7 +287,7 @@ class DirectedGraph(Graph):
         [self.add_arc(a[0], a[1]) for a in args]
 
     def get_arcs(self):
-        return {(v, u) for v in self.get_vertices() for u in self.neighbourhood(v)}
+        return {(v, u) for v in self.vertices for u in self.neighbourhood(v)}
 
     def arced(self, v1, v2):
         return v2 in self._graph[v1] or v1 in self._graph[v2]
@@ -217,6 +295,7 @@ class DirectedGraph(Graph):
     def arc_neighbourhood(self, v):
         return set([u for u in self._graph if self.arced(v, u)])
 
+    @property
     def weakly_connected(self):
         def scan_vertex(vertex):
             explored.add(vertex)
@@ -250,7 +329,7 @@ class WeightedGraph(Graph):
         if key is None:
             def key(x, y): self.get_weight(x, y)
 
-        q = self.get_vertices()
+        q = self.vertices
         dist = {v: float('inf') for v in q}
         prev = {v: None for v in q}
         dist[v1] = 0
@@ -319,11 +398,11 @@ class NetworkFlow:
 
         # validate network flow
         # check vertex flow conservation is satisfied
-        flow_in = {v: sum([arc_flow[(u, v)] for u in network.get_vertices() if v in network.neighbourhood(u)])
-                   for v in network.get_vertices()}
+        flow_in = {v: sum([arc_flow[(u, v)] for u in network.vertices if v in network.neighbourhood(u)])
+                   for v in network.vertices}
         flow_out = {v: sum([arc_flow[(v, u)] for u in network.neighbourhood(v)])
-                    for v in network.get_vertices()}
-        for v in list(network.get_vertices() - {network.source(), network.sink()}):
+                    for v in network.vertices}
+        for v in list(network.vertices - {network.source(), network.sink()}):
             if not flow_in[v] == flow_out[v]:
                 raise ValueError('Flow does not satisfy flow conservation at vertex {} with out flow {} '
                                  'and in flow {}.'.format(v, flow_out[v], flow_in[v])
@@ -342,7 +421,7 @@ class NetworkFlow:
 
     def residual_network(self):
         n = Network()
-        n.add_vertices(*list(self._network.get_vertices()))
+        n.add_vertices(*list(self._network.vertices))
         for arc in self._network.get_arcs():
             n.add_arc(arc[0], arc[1], weight=self._network.get_weight(arc[0], arc[1]) - self.flow(arc[0], arc[1]))
             n.add_arc(arc[1], arc[0], weight=self.flow(arc[0], arc[1]))
@@ -363,13 +442,13 @@ def find_embeddings(g1: Graph, g2: Graph):
 
     # v1 - enumerative method. Presumably a better algorithm can be found, similar to Bron-Kerbosch.
     # first, list vertices of g2 and assign their indices to a dict - this helps in permutation comprehension.
-    g2l = list(g2.get_vertices())
+    g2l = list(g2.vertices)
     order = {g2l[i]: i for i in range(len(g2l))}
 
     embeddings = []
     # then, check each |V(g2)|-permutation of V(g1) for an embedding.
-    for perm in permutations(list(g1.get_vertices()), len(g2.get_vertices())):
-        if False not in [g1.adjacent(perm[order[e[0]]], perm[order[e[1]]]) for e in g2.get_edges()]:
+    for perm in permutations(list(g1.vertices), len(g2.vertices)):
+        if False not in [g1.adjacent(perm[order[e[0]]], perm[order[e[1]]]) for e in g2.edges]:
             # if embedding is proper, generate the map and add to the list
             embeddings.append({g2l[i]: perm[i] for i in range(len(g2l))})
 
@@ -381,7 +460,7 @@ def erdos_renyi_model_generation(n: int, p: float):
     g = Graph()
     g.add_vertices(*[i for i in range(n)])
 
-    possible_edges = {frozenset({v, u}) for v in g.get_vertices() for u in g.get_vertices() - {v}}
+    possible_edges = {frozenset({v, u}) for v in g.vertices for u in g.vertices - {v}}
     g.add_edges(*[tuple(e) for e in possible_edges if random() < p])
     return g
 

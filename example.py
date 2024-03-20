@@ -41,7 +41,7 @@ cliques = graph_3.max_cliques()
 
 canvas = GraphsRender.Canvas(1200, 1200)
 coords = GraphsRender.generate_circle_coordinates(graph_3, 1200, 1200, 0.8)
-GraphsRender.render_graph_coordinate(canvas, graph_3, 1200, 1200, coords, 30)
+GraphsRender.render_graph_coordinate(canvas, graph_3, coords, 30)
 for c in cliques:
     # generates a random colour and draws subgraph for each clique
     color = "#" + ("%02x" % randint(0, 255)) + ("%02x" % randint(0, 255)) + ("%02x" % randint(0, 255))
@@ -65,6 +65,6 @@ canvas.begin_mainloop()
 # 6 - Hypercube paths
 canvas = GraphsRender.Canvas(1200, 1200)
 coords = GraphsRender.generate_circle_coordinates(graph, 1200, 1200, 0.8)
-GraphsRender.render_graph_coordinate(canvas, graph, 1200, 1200, coords, 30)
+GraphsRender.render_graph_coordinate(canvas, graph, coords, 30)
 GraphsRender.render_graph_coordinate_style(canvas, graph_f2, 1200, 1200, coords, 30, "blue", 2, 15)
 canvas.begin_mainloop()
